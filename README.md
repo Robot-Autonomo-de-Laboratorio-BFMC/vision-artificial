@@ -17,10 +17,16 @@ Esto permitirá al sistema de control del vehículo autónomo tomar decisiones b
 
 ## 🧠 Estrategia General
 
-1. **Entrenamiento individual**
-   - Se entrenó un modelo YOLOv8 usando un dataset específico de semáforos.
-   - Se probaron entrenamientos con 1, 10 y 50 epochs.
+1. **Exploración inicial con YOLOv5**
 
-2. **Fusión de datasets**
-   - Próximamente se combinarán datasets para abarcar todas las clases necesarias.
-   - 
+   - Comenzamos utilizando YOLOv5 con pesos preentrenados para familiarizarnos con el flujo general: detección, inferencia y visualización.
+   - Esta etapa fue clave para entender cómo adaptar la herramienta al contexto de nuestra maqueta.
+
+2. **Entrenamiento individual con YOLOv8**
+
+   - Entrenamos un modelo YOLOv8 específicamente para detectar semáforos (rojo, amarillo y verde).
+   - Se probaron entrenamientos con 1, 10 y 50 épocas, evaluando su rendimiento comparativo.
+
+3. **Fusión de datasets (próximo paso)**
+   - Estamos trabajando en un dataset unificado que incluya todos los objetos relevantes para la maqueta: autos, peatones, semáforos y carteles.
+   - Esto permitirá entrenar un solo modelo capaz de detectar múltiples clases simultáneamente.
