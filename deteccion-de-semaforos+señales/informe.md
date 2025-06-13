@@ -4,7 +4,8 @@ En el marco del proyecto de vehículo autónomo a escala (BFMC), entrenamos un m
 
 - **Luces de semáforo**: `lightgreen`, `lightred`, `lightyellow`
   ![luces](../resources/images/luces.png)
-- **Señales de tránsito y semáforos**: `crosswalk`, `highway_entry`, `highway_exit`, `no_entry`, `onewayroad`, `parking`, `priority`, `roundabout`, `stop`, `trafficlight`
+- **Señales de tránsito y semáforos**: `priority`, `crosswalk`, `stop`, `parking`, `highway_entry`, `highway_exit`, `no_entry`, `roundabout`, `onewayroad`, `trafficlight`
+
   ![señales](../resources/images/TrafficSign.png)
 
 > **Nota**: Para este experimento se realizó una combinación (merge) de dos datasets distintos: uno específico de **semáforos** y otro de **señales de tránsito BFMC**. Posteriormente, todas las imágenes fueron **reescaladas (resize)** y unificadas utilizando la plataforma Roboflow.
