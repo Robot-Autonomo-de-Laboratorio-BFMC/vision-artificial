@@ -42,9 +42,9 @@ Esto permitirá al sistema de control del vehículo autónomo tomar decisiones b
 
 ## 📌 Estado actual
 
-- 🔍 Análisis y pruebas con detección individual: [**completado**](https://github.com/Robot-Autonomo-de-Laboratorio-BFMC/vision-artificial/tree/53b87eb3c50ceca6dbd52121e5a8c9a142758c67/prueba-yolov5-base)
-- 🧪 Entrenamiento de YOLOv8 para semáforos: [**completado**](https://github.com/Robot-Autonomo-de-Laboratorio-BFMC/vision-artificial/blob/53b87eb3c50ceca6dbd52121e5a8c9a142758c67/deteccion-de-semaforos/informe.md)
-- 🧬 Fusión parcial de datasets (señales + semáforos): [**completado**](https://github.com/Robot-Autonomo-de-Laboratorio-BFMC/vision-artificial/blob/53b87eb3c50ceca6dbd52121e5a8c9a142758c67/deteccion-de-semaforos%2Bse%C3%B1ales/informe.md) 
+- 🔍 Análisis y pruebas con detección individual: [**completado**](https://github.com/Robot-Autonomo-de-Laboratorio-BFMC/vision-artificial/tree/main/prueba-yolov5-base)
+- 🧪 Entrenamiento de YOLOv8 para semáforos: [**completado**](https://github.com/Robot-Autonomo-de-Laboratorio-BFMC/vision-artificial/blob/main/deteccion-de-semaforos/informe.md)
+- 🧬 Fusión parcial de datasets (señales + semáforos): [**completado**](https://github.com/Robot-Autonomo-de-Laboratorio-BFMC/vision-artificial/blob/main/deteccion-de-semaforos%2Bse%C3%B1ales/informe.md) 
 - 🚧 Integración de autos y peatones: **en proceso**
 
 ---
