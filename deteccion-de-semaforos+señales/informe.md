@@ -19,7 +19,7 @@ En el marco del proyecto de vehículo autónomo a escala (BFMC), entrenamos un m
 
 ---
 
-## 1 Época
+## 1 Época - [video de prueba con auto bfmc](https://youtu.be/cvspfiX-pog)
 
 ![Curva PR 1 época](images/1-epoch/PR_curve.png)
 ![Matriz de confusión 1 época](images/1-epoch/confusion_matrix_normalized.png)
@@ -29,7 +29,7 @@ En el marco del proyecto de vehículo autónomo a escala (BFMC), entrenamos un m
 - **F1 máximo**: ~0.93 a conf=0.61
 - **Conclusión**: el modelo parte con excelente desempeño; ya útil desde la primera época aunque sin estabilidad completa.
 
-## 10 Épocas
+## 10 Épocas - [video de prueba con auto bfmc](https://youtu.be/JorXXdNhzco?si=gpK0zj7QkEnCN1ZH)
 
 ![Curva PR 10 épocas](images/10-epoch/PR_curve.png)
 ![Matriz de confusión 10 épocas](images/10-epoch/confusion_matrix_normalized.png)

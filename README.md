@@ -2,14 +2,16 @@
 
 Este proyecto forma parte del desarrollo de un vehículo autónomo a escala, enfocado específicamente en la etapa de visión artificial. Utilizamos modelos de detección de objetos basados en **YOLOv8** para identificar elementos del entorno vial simulados en una maqueta.
 
+---
+
 ## 🎯 Objetivo
 
 Detectar en tiempo real los siguientes objetos mediante un modelo entrenado:
 
-- 🚗 Autos
-- 🚶 Peatones (o figuras equivalentes en maqueta)
-- 🚦 Semáforos (con luz roja, amarilla y verde)
-- 🛑 Carteles de tránsito: Stop, Peatonal, Parking
+- 🚗 Autos  
+- 🚶 Peatones (o figuras equivalentes en maqueta)  
+- 🚦 Semáforos (con luz roja, amarilla y verde)  
+- 🛑 Carteles de tránsito: Stop, Peatonal, Parking  
 
 Esto permitirá al sistema de control del vehículo autónomo tomar decisiones basadas en el entorno visual.
 
@@ -27,6 +29,22 @@ Esto permitirá al sistema de control del vehículo autónomo tomar decisiones b
    - Entrenamos un modelo YOLOv8 específicamente para detectar semáforos (rojo, amarillo y verde).
    - Se probaron entrenamientos con 1, 10 y 50 épocas, evaluando su rendimiento comparativo.
 
-3. **Fusión de datasets (próximo paso)**
-   - Estamos trabajando en un dataset unificado que incluya todos los objetos relevantes para la maqueta: autos, peatones, semáforos y carteles.
-   - Esto permitirá entrenar un solo modelo capaz de detectar múltiples clases simultáneamente.
+3. **Fusión de datasets (proceso en curso)**
+
+   - Estamos avanzando hacia un dataset unificado que incluya **todas las clases relevantes**.
+   - Para esto, dividimos el proceso de fusión en **dos etapas**:
+     - ✅ **Primera etapa:** combinamos exitosamente los datasets de **señales de tránsito** (Stop, Peatonal, Parking) con el de **semáforos** (rojo, amarillo y verde).
+     - ⏳ **Segunda etapa (pendiente):** resta incorporar datasets con **autos** y **peatones**. Esto completará el conjunto final para entrenamiento multi-clase.
+
+   Una vez finalizada esta integración, entrenaremos un único modelo capaz de detectar todos los objetos simultáneamente.
+
+---
+
+## 📌 Estado actual
+
+- 🔍 Análisis y pruebas con detección individual: [**completado**](https://github.com/Robot-Autonomo-de-Laboratorio-BFMC/vision-artificial/tree/main/prueba-yolov5-base)
+- 🧪 Entrenamiento de YOLOv8 para semáforos: [**completado**](https://github.com/Robot-Autonomo-de-Laboratorio-BFMC/vision-artificial/blob/main/deteccion-de-semaforos/informe.md)
+- 🧬 Fusión parcial de datasets (señales + semáforos): [**completado**](https://github.com/Robot-Autonomo-de-Laboratorio-BFMC/vision-artificial/blob/main/deteccion-de-semaforos%2Bse%C3%B1ales/informe.md) 
+- 🚧 Integración de autos y peatones: **en proceso**
+
+---
