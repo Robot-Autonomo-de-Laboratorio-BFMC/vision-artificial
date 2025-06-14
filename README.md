@@ -33,7 +33,7 @@ Esto permitirá al sistema de control del vehículo autónomo tomar decisiones b
 
    - Estamos avanzando hacia un dataset unificado que incluya **todas las clases relevantes**.
    - Para esto, dividimos el proceso de fusión en **dos etapas**:
-     - ✅ **Primera etapa:** combinamos exitosamente los datasets de **señales de tránsito** (Stop, Peatonal, Parking) con el de **semáforos** (rojo, amarillo y verde).
+     - ✅ **Primera etapa:** combinamos exitosamente los datasets de **señales de tránsito** con el de **semáforos**.
      - ⏳ **Segunda etapa (pendiente):** resta incorporar datasets con **autos** y **peatones**. Esto completará el conjunto final para entrenamiento multi-clase.
 
    Una vez finalizada esta integración, entrenaremos un único modelo capaz de detectar todos los objetos simultáneamente.
