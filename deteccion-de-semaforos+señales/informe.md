@@ -2,7 +2,7 @@
 
 En el marco del proyecto de vehículo autónomo a escala (BFMC), entrenamos un modelo **YOLOv8-m** para la detección conjunta de:
 
-- **Luces de semáforo**: `lightgreen`, `lightred`, `lightyellow`
+- **Luces de semáforo**: `lightred`, `lightyellow`, `lightgreen`
   ![luces](../resources/images/luces.png)
 - **Señales de tránsito y semáforos**: `priority`, `crosswalk`, `stop`, `parking`, `highway_entry`, `highway_exit`, `no_entry`, `roundabout`, `onewayroad`, `trafficlight`
 
