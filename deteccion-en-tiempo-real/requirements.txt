@@ -1,0 +1,7 @@
+# Dependencias principales para detección de objetos
+ultralytics>=8.0.0
+supervision>=0.16.0
+opencv-python>=4.8.0
+
+# Para manejar variables de entorno (opcional ahora)
+python-dotenv>=1.0.0
