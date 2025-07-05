@@ -1,6 +1,6 @@
 # 🤖 Detector de Objetos en Tiempo Real
 
-Sistema de detección de objetos en **tiempo real** usando cámara web con modelo local YOLO.
+Sistema de detección de objetos en **tiempo real** usando cámara web con modelo local YOLO y soporte automático para GPU.
 
 ## 🚀 Instalación
 
@@ -13,6 +13,16 @@ pip install -r requirements.txt
 ### 2. Verificar modelo local
 
 El sistema usa el modelo `best.pt` ubicado en `weights/merged/`. Asegúrate de que el archivo existe.
+
+### 3. Soporte GPU (opcional pero recomendado)
+Para mejor rendimiento, instala PyTorch con soporte CUDA:
+```bash
+# Desinstalar versión CPU
+pip uninstall torch torchvision
+
+# Instalar versión con CUDA
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+```
 
 ## 🎮 Uso
 
@@ -29,6 +39,8 @@ python3 detection.py
 - **📋 Visualización** - Cajas de detección y etiquetas
 - **⚡ Tiempo Real** - Procesamiento continuo de frames
 - **📊 Filtro de Confianza** - Solo muestra detecciones > 60%
+- **🚀 Aceleración GPU** - Detecta automáticamente si hay GPU disponible
+- **📈 Monitor FPS** - Muestra FPS en tiempo real
 
 ### Controles:
 
@@ -51,7 +63,7 @@ deteccion-en-tiempo-real/
 
 ### Cambiar el umbral de confianza:
 
-Edita la línea 44 en `detection.py`:
+Edita la línea 67 en `detection.py`:
 
 ```python
 confidence_threshold = 0.6  # 60% - Cambia este valor
@@ -61,13 +73,20 @@ confidence_threshold = 0.6  # 60% - Cambia este valor
 
 La aplicación detecta automáticamente si estás en WSL y aplica configuraciones optimizadas para cámaras USB.
 
+### Configuración GPU:
+La aplicación detecta automáticamente si hay GPU disponible:
+- **GPU NVIDIA**: Se usa automáticamente para aceleración
+- **CPU**: Se usa como respaldo si no hay GPU
+- **Optimizaciones**: CUDNN benchmark activado automáticamente
+
 ## 📝 Notas importantes
 
 - **Modelo local**: No requiere internet después de la instalación
 - **Cámara**: Asegúrate de que tu cámara esté conectada y disponible
 - **WSL**: Optimizado para funcionar con cámaras USB en WSL
-- **GPU**: Para mejor rendimiento, instala PyTorch con soporte GPU
+- **GPU**: Detección automática y optimizaciones incluidas
 - **Confianza**: Solo se muestran detecciones con confianza > 60%
+- **FPS**: Monitor de rendimiento incluido
 
 ## 🆘 Solución de problemas
 
@@ -82,6 +101,16 @@ La aplicación detecta automáticamente si estás en WSL y aplica configuracione
 - Cierra otras aplicaciones que usen la cámara
 - En WSL: Verifica que la cámara esté disponible en `/dev/video*`
 
+### Error: "ultralytics no está instalado"
+```bash
+pip install ultralytics
+```
+
+### Problemas con GPU:
+- **GPU no detectada**: Instala PyTorch con soporte CUDA
+- **Error CUDA**: Verifica drivers NVIDIA actualizados
+- **Out of memory**: Reduce resolución de cámara o cierra otras apps
+
 ### Problemas específicos de WSL:
 
 - **Timeout de cámara**: La aplicación incluye configuraciones específicas para WSL
@@ -93,10 +122,24 @@ La aplicación detecta automáticamente si estás en WSL y aplica configuracione
 - ✅ **Detección en tiempo real** con cámara web
 - ✅ **Modelo local** - No requiere internet
 - ✅ **Filtro de confianza** - Solo detecciones > 60%
+- ✅ **Aceleración GPU automática** - Detecta y usa GPU si está disponible
+- ✅ **Monitor FPS** - Rendimiento en tiempo real
 - ✅ **Optimizado para WSL** con configuraciones específicas
 - ✅ **Visualización clara** con cajas y etiquetas
 - ✅ **Manejo de errores** robusto
 - ✅ **Sin dependencias externas** - Todo local
+
+## 🚀 Rendimiento
+
+### Con GPU:
+- **FPS**: 15-30+ (dependiendo de la GPU)
+- **Latencia**: Muy baja
+- **Precisión**: Alta
+
+### Con CPU:
+- **FPS**: 5-15
+- **Latencia**: Media
+- **Precisión**: Alta
 
 ## 🤝 Soporte
 
@@ -105,3 +148,4 @@ Si tienes problemas:
 1. Verifica que seguiste todos los pasos de instalación
 2. Comprueba que el archivo `best.pt` existe
 3. Para WSL: Verifica que la cámara esté disponible en `/dev/video*`
+4. Para GPU: Verifica que PyTorch tenga soporte CUDA

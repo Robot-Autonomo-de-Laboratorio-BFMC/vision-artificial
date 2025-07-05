@@ -2,10 +2,32 @@ import supervision as sv
 import cv2
 import os
 import sys
+import torch
 from ultralytics import YOLO
 from config import choose_camera_by_OS, handle_video_capture, detect_os
 
-def procesar_camara(model):
+def detectar_y_configurar_gpu():
+    """Detecta automáticamente si hay GPU disponible y la configura"""
+    if torch.cuda.is_available():
+        # Configurar GPU
+        device = "cuda"
+        gpu_name = torch.cuda.get_device_name(0)
+        gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1024**3
+        
+        print(f"🎮 GPU detectada: {gpu_name}")
+        print(f"🎮 Memoria GPU: {gpu_memory:.1f} GB")
+        print("⚡ Usando GPU para aceleración")
+        
+        # Optimizaciones para GPU
+        torch.backends.cudnn.benchmark = True
+        torch.backends.cudnn.deterministic = False
+        
+        return device, True
+    else:
+        print("💻 GPU no disponible, usando CPU")
+        return "cpu", False
+
+def procesar_camara(model, device, use_gpu):
     """Procesa video desde la cámara web"""
     # Detectar sistema operativo y elegir path de cámara apropiado
     os_detected = detect_os()
@@ -14,6 +36,7 @@ def procesar_camara(model):
     print("📹 Iniciando cámara web... (Presiona 'q' para salir)")
     print(f"🔍 Sistema operativo detectado: {os_detected}")
     print(f"📷 Usando path de cámara: {camera_path}")
+    print(f"🚀 Dispositivo de inferencia: {device}")
     
     cap = handle_video_capture("Detección en tiempo real - Cámara", camera_path)
     
@@ -28,14 +51,18 @@ def procesar_camara(model):
     print("🎥 Cámara iniciada. Presiona 'q' para salir...")
     print("📊 Solo se mostrarán detecciones con confianza > 60%")
     
+    # Contador de FPS
+    frame_count = 0
+    start_time = cv2.getTickCount()
+    
     while True:
         ret, frame = cap.read()
         if not ret:
             print("❌ Error al capturar frame de la cámara.")
             break
         
-        # Realizar inferencia con modelo local
-        results = model(frame, verbose=False)[0]
+        # Realizar inferencia con modelo local (usando GPU si está disponible)
+        results = model(frame, verbose=False, device=device)[0]
         
         # Convertir resultados de YOLO a formato de supervision
         detections = sv.Detections.from_ultralytics(results)
@@ -48,6 +75,14 @@ def procesar_camara(model):
             
             # Filtrar detecciones
             detections = detections[high_confidence_mask]
+        
+        # Calcular FPS
+        frame_count += 1
+        if frame_count % 30 == 0:  # Actualizar FPS cada 30 frames
+            current_time = cv2.getTickCount()
+            fps = 30 * cv2.getTickFrequency() / (current_time - start_time)
+            start_time = current_time
+            print(f"📊 FPS: {fps:.1f}")
         
         # Anotar el frame solo si hay detecciones válidas
         if len(detections) > 0:
@@ -86,6 +121,9 @@ def main():
     print(f"💻 Sistema operativo detectado: {os_detected}")
     print(f"📷 Path de cámara configurado: {camera_path}")
     
+    # Detectar y configurar GPU automáticamente
+    device, use_gpu = detectar_y_configurar_gpu()
+    
     print("🤖 Cargando modelo local...")
     print(f"📋 Modelo: {model_path}")
     
@@ -93,11 +131,19 @@ def main():
         # Cargar el modelo local
         model = YOLO(model_path)
         print("✅ Modelo cargado exitosamente!")
+        
+        # Si hay GPU, mover el modelo a GPU
+        if use_gpu:
+            model.to(device)
+            print("🚀 Modelo movido a GPU")
+            
     except Exception as e:
         print(f"❌ Error al cargar el modelo: {e}")
         print("💡 Posibles soluciones:")
         print("   - Verifica que el archivo best.pt sea válido")
         print("   - Asegúrate de que ultralytics esté instalado")
+        if use_gpu:
+            print("   - Si hay problemas con GPU, instala PyTorch con soporte CUDA")
         return
     
     print("\n" + "="*50)
@@ -106,10 +152,12 @@ def main():
     print("🎥 Iniciando detección con cámara...")
     print("📋 Presiona 'q' para salir")
     print("📊 Umbral de confianza: 60%")
+    if use_gpu:
+        print("⚡ Aceleración GPU activada")
     print("="*50)
     
     # Iniciar detección con cámara
-    procesar_camara(model)
+    procesar_camara(model, device, use_gpu)
     
     print("👋 ¡Hasta luego!")
 
