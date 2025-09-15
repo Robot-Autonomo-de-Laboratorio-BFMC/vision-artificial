@@ -8,6 +8,35 @@ from config import choose_camera_by_OS, handle_video_capture, detect_os
 
 def detectar_y_configurar_gpu():
     """Detecta automáticamente si hay GPU disponible y la configura"""
+    
+    # Diagnóstico completo de PyTorch y CUDA
+    print("🔍 DIAGNÓSTICO DE PYTORCH Y CUDA:")
+    print(f"   PyTorch versión: {torch.__version__}")
+    print(f"   CUDA disponible: {torch.cuda.is_available()}")
+    print(f"   CUDA versión compilada: {torch.version.cuda}")
+    print(f"   cuDNN versión: {torch.backends.cudnn.version() if torch.backends.cudnn.is_available() else 'No disponible'}")
+    
+    # Verificar si estamos en Jetson
+    try:
+        with open('/etc/nv_tegra_release', 'r') as f:
+            jetson_info = f.read().strip()
+            print(f"   Jetson detectado: {jetson_info}")
+    except FileNotFoundError:
+        print("   No es un dispositivo Jetson")
+    
+    # Verificar drivers NVIDIA
+    try:
+        import subprocess
+        nvidia_smi = subprocess.run(['nvidia-smi'], capture_output=True, text=True, timeout=5)
+        if nvidia_smi.returncode == 0:
+            print("   nvidia-smi: ✅ Disponible")
+        else:
+            print("   nvidia-smi: ❌ No disponible")
+    except:
+        print("   nvidia-smi: ❌ No disponible")
+    
+    print("-" * 50)
+    
     if torch.cuda.is_available():
         # Configurar GPU
         device = "cuda"
