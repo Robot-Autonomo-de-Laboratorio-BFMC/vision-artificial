@@ -1,7 +1,6 @@
 import supervision as sv
 import cv2
 import os
-import sys
 import torch
 from ultralytics import YOLO
 from config import choose_camera_by_OS, handle_video_capture, detect_os
