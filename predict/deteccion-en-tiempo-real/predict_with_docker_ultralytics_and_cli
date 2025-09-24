@@ -4,6 +4,7 @@
 
 # Set image name as a variable
 t=ultralytics/ultralytics:latest
+#t=ultralytics/ultralytics:latest-jetson-jetpack4
 
 # Pull the latest Ultralytics image from Docker Hub
 sudo docker pull $t
