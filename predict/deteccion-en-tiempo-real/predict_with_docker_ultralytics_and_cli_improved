@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+
+## Script mejorado para ejecutar YOLO con Docker y GPU
+## Compatible con GPUs viejas usando imagen Jetson
+
+set -e  # Salir si hay errores
+
+# Configuración
+IMAGE_NAME="ultralytics/ultralytics:latest-jetson-jetpack6"
+MODEL_PATH="weights/merged/best.pt"
+VIDEO_SOURCE="/dev/video0"
+
+# Colores para output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Función para imprimir mensajes
+print_info() {
+    echo -e "${BLUE}ℹ️  $1${NC}"
+}
+
+print_success() {
+    echo -e "${GREEN}✅ $1${NC}"
+}
+
+print_warning() {
+    echo -e "${YELLOW}⚠️  $1${NC}"
+}
+
+print_error() {
+    echo -e "${RED}❌ $1${NC}"
+}
+
+# Verificar que el archivo del modelo existe
+if [ ! -f "$MODEL_PATH" ]; then
+    print_error "No se encontró el modelo en: $MODEL_PATH"
+    print_info "Asegúrate de que el archivo best.pt esté en la ubicación correcta"
+    exit 1
+fi
+
+print_success "Modelo encontrado en: $MODEL_PATH"
+
+# Verificar que Docker está corriendo
+if ! docker info > /dev/null 2>&1; then
+    print_error "Docker no está corriendo o no tienes permisos"
+    print_info "Inicia Docker o ejecuta con sudo"
+    exit 1
+fi
+
+print_success "Docker está corriendo"
+
+# Verificar que nvidia-docker está disponible (para GPU)
+if ! docker info | grep -q nvidia; then
+    print_warning "nvidia-docker no detectado. GPU podría no funcionar"
+    print_info "Asegúrate de tener nvidia-docker-toolkit instalado"
+fi
+
+# Pull de la imagen
+print_info "Descargando imagen Docker: $IMAGE_NAME"
+sudo docker pull $IMAGE_NAME
+print_success "Imagen descargada"
+
+# Configurar X11 para GUI
+print_info "Configurando X11 para mostrar ventanas"
+xhost +local:docker
+
+# Ejecutar contenedor con volumen para el modelo
+print_info "Iniciando contenedor Docker..."
+print_info "Modelo: $MODEL_PATH"
+print_info "Fuente de video: $VIDEO_SOURCE"
+print_info "Presiona Ctrl+C para detener"
+
+docker run \
+  --rm \
+  -e DISPLAY=$DISPLAY \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  -v ~/.Xauthority:/root/.Xauthority \
+  -v "$(pwd)/weights:/app/weights:ro" \
+  --device $VIDEO_SOURCE:$VIDEO_SOURCE \
+  -it \
+  --ipc=host \
+  --runtime=nvidia \
+  --gpus all \
+  $IMAGE_NAME \
+  yolo predict \
+    model=/app/weights/merged/best.pt \
+    source=$VIDEO_SOURCE \
+    show=True \
+    save=False \
+    verbose=True
+
+print_success "Contenedor finalizado"
