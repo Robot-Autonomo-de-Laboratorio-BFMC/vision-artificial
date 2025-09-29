@@ -3,8 +3,8 @@
 ## correr directamente con la imagen de ultralytics: no es compatible con GPUs viejas
 
 # Set image name as a variable
-t=ultralytics/ultralytics:latest
-#t=ultralytics/ultralytics:latest-jetson-jetpack4
+#t=ultralytics/ultralytics:latest
+t=ultralytics/ultralytics:latest-jetson-jetpack6
 
 # Pull the latest Ultralytics image from Docker Hub
 sudo docker pull $t
@@ -15,4 +15,4 @@ xhost +local:docker && docker run -e DISPLAY=$DISPLAY \
   -v ~/.Xauthority:/root/.Xauthority \
   --device /dev/video0:/dev/video0 \
   -it --ipc=host --runtime=nvidia --gpus all $t \
-  yolo predict model=weights/merged/best.pt source=/dev/video0 show=True
+  yolo predict model=../deteccion-en-tiempo-real/weights/merged/best.pt source=/dev/video0 show=True
