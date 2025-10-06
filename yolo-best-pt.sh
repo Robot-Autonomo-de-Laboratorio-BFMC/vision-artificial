@@ -94,7 +94,7 @@ PY
 
     # D) Navegar al directorio del modelo
     echo "📁 Navegando al directorio del modelo..."
-    cd /home/bfmc/projects/universidad/bfmc/Robot-Autonomo-de-Laboratorio-BFMC/vision-artificial
+    cd /home/bfmc/app//vision-artificial
     
     # E) Verificar que el modelo existe
     if [ ! -f "'$MODEL_PATH'" ]; then
