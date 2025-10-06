@@ -69,6 +69,8 @@ sudo docker run -it --rm --ipc=host \
     
     # A) Librerías GUI para OpenCV + X11
     echo "📦 Instalando librerías GUI..."
+    export DEBIAN_FRONTEND=noninteractive
+    export TZ=UTC
     apt-get update && apt-get install -y \
       python3-opencv \
       libgtk-3-0 libgl1 libglib2.0-0 \
@@ -129,7 +131,7 @@ PY
         MODEL_TO_USE="'$MODEL_PATH'"
     fi
     
-    yolo predict model="$MODEL_TO_USE" source=0 show=True save=False verbose=True
+    yolo predict model="$MODEL_TO_USE" source=0 imgsz=640 show=True save=False verbose=True
   '
 
 print_success "Contenedor finalizado"
