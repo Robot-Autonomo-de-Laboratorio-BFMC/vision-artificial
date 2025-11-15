@@ -20,12 +20,16 @@ fi
 
 echo "✅ Modelo encontrado"
 
+# Obtener directorio actual del proyecto
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+echo "📂 Directorio del proyecto: $PROJECT_DIR"
+
 # Preparar X11 y descargar imagen
 xhost +local:docker || true
 sudo docker pull "$IMG"
 
 # Ejecutar contenedor
-echo "🎥 Iniciando detección en tiempo real..."
+echo "🎥 Iniciando detección en tiempo real... Este proceso puede tardar unos minutos..."
 echo "📋 Presiona Ctrl+C para detener"
 
 sudo docker run -it --rm --ipc=host \
@@ -36,7 +40,8 @@ sudo docker run -it --rm --ipc=host \
   -e QT_X11_NO_MITSHM=1 \
   -e QT_QPA_PLATFORM=xcb \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
-  -v /home/$USER:/home/$USER \
+  -v "$PROJECT_DIR:/workspace" \
+  -w /workspace \
   "$IMG" bash -c '
     # Instalar dependencias GUI
     apt-get update -qq && apt-get install -y -qq \
@@ -48,15 +53,18 @@ sudo docker run -it --rm --ipc=host \
     # Remover OpenCV headless
     pip uninstall -y opencv-python-headless opencv-contrib-python-headless || true
     
-    # Navegar al directorio
-    cd /home/'$USER'/projects/universidad/bfmc/Robot-Autonomo-de-Laboratorio-BFMC/vision-artificial
+    # Verificar que estamos en el directorio correcto
+    echo "📁 Directorio de trabajo: $(pwd)"
     
     # Verificar modelo
     if [ ! -f '$MODEL_PATH' ]; then
         echo "❌ Modelo no encontrado: '$MODEL_PATH'"
+        echo "💡 Archivos en el directorio actual:"
+        ls -la
         exit 1
     fi
     
+    echo "✅ Modelo encontrado en el contenedor"
     echo "🎮 Usando GPU para aceleración"
     echo "📷 Fuente: cámara web"
     echo "🤖 Modelo: '$MODEL_PATH'"
