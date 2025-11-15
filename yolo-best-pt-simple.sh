@@ -52,7 +52,7 @@ sudo docker run -it --rm --ipc=host \
     cd /home/'$USER'/projects/universidad/bfmc/Robot-Autonomo-de-Laboratorio-BFMC/vision-artificial
     
     # Verificar modelo
-    if [ ! -f "'$MODEL_PATH'" ]; then
+    if [ ! -f '$MODEL_PATH' ]; then
         echo "❌ Modelo no encontrado: '$MODEL_PATH'"
         exit 1
     fi
