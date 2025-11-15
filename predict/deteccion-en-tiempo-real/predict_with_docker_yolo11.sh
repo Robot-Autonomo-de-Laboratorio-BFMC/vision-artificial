@@ -3,6 +3,45 @@ set -e
 
 # Imagen para Jetson con JetPack 6
 IMG="ultralytics/ultralytics:latest-jetson-jetpack6"
+IMG_SIZE=640  # Resolución de imagen (por defecto 640, más rápido que 720p)
+
+# Función de ayuda
+show_help() {
+    echo "Uso: $0 [OPCIONES]"
+    echo ""
+    echo "Opciones:"
+    echo "  --imgsz SIZE      Especifica el tamaño de imagen (por defecto: 640)"
+    echo "                    Valores comunes: 320, 480, 640, 1280"
+    echo "                    Menor = más rápido pero menos detalle"
+    echo "  -h, --help        Muestra esta ayuda"
+    echo ""
+    echo "Ejemplos:"
+    echo "  $0                # Usa resolución 640 (por defecto)"
+    echo "  $0 --imgsz 480    # Usa resolución 480 (más rápido)"
+    echo "  $0 --imgsz 320    # Usa resolución 320 (muy rápido)"
+}
+
+# Parsear argumentos
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --imgsz)
+            IMG_SIZE="$2"
+            shift 2
+            ;;
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        *)
+            echo "❌ Opción desconocida: $1"
+            echo ""
+            show_help
+            exit 1
+            ;;
+    esac
+done
+
+echo "🖼️  Resolución de imagen: ${IMG_SIZE}x${IMG_SIZE}"
 
 # 1) Preparar host para X11
 xhost +local:docker || true
@@ -45,6 +84,7 @@ PY
 
     # D) Exportar a TensorRT (si no existe aún) y predecir desde cámara
     test -f yolo11n.engine || yolo export model=yolo11n.pt format=engine
-    # Mostrar en ventana; si preferís sin ventana, poné show=False save=True
-    yolo predict model=yolo11n.engine source=0 show=True
+    # Mostrar en ventana con resolución reducida para mejor rendimiento
+    echo "🖼️  Usando resolución: '$IMG_SIZE'x'$IMG_SIZE'"
+    yolo predict model=yolo11n.engine source=0 imgsz='$IMG_SIZE' show=True
   '

@@ -8,6 +8,7 @@ set -e
 IMG="ultralytics/ultralytics:latest-jetson-jetpack6"
 MODEL_PATH="weights/merged/best.pt"
 VIDEO_DEVICE="video0"  # Por defecto video0
+IMG_SIZE=640  # Resolución de imagen (por defecto 640, más rápido que 720p)
 
 # Función de ayuda
 show_help() {
@@ -16,12 +17,16 @@ show_help() {
     echo "Opciones:"
     echo "  --video DEVICE    Especifica el dispositivo de video (por defecto: video0)"
     echo "                    Ejemplos: --video video0, --video video1, --video 0"
+    echo "  --imgsz SIZE      Especifica el tamaño de imagen (por defecto: 640)"
+    echo "                    Valores comunes: 320, 480, 640, 1280"
+    echo "                    Menor = más rápido pero menos detalle"
     echo "  -h, --help        Muestra esta ayuda"
     echo ""
     echo "Ejemplos:"
-    echo "  $0                    # Usa video0 (por defecto)"
+    echo "  $0                    # Usa video0, resolución 640 (por defecto)"
     echo "  $0 --video video1     # Usa video1"
-    echo "  $0 --video 0          # Usa el índice 0 (equivalente a video0)"
+    echo "  $0 --imgsz 480         # Usa resolución 480 (más rápido)"
+    echo "  $0 --video 1 --imgsz 320  # Usa video1 con resolución 320"
 }
 
 # Parsear argumentos
@@ -29,6 +34,10 @@ while [[ $# -gt 0 ]]; do
     case $1 in
         --video)
             VIDEO_DEVICE="$2"
+            shift 2
+            ;;
+        --imgsz)
+            IMG_SIZE="$2"
             shift 2
             ;;
         -h|--help)
@@ -63,6 +72,7 @@ echo "🚀 Iniciando YOLO con modelo best.pt..."
 echo "📁 Modelo: $MODEL_PATH"
 echo "⚡ Optimización: TensorRT (exportación automática si es necesario)"
 echo "📷 Dispositivo de video: /dev/$VIDEO_DEVICE (source=$VIDEO_SOURCE)"
+echo "🖼️  Resolución de imagen: ${IMG_SIZE}x${IMG_SIZE}"
 
 # Obtener directorio del script y navegar al directorio raíz del proyecto
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -145,10 +155,11 @@ sudo docker run -it --rm --ipc=host \
     
     echo "🎮 Usando GPU para aceleración"
     echo "📷 Fuente: /dev/'$VIDEO_DEVICE' (source='$VIDEO_SOURCE')"
+    echo "🖼️  Resolución: '$IMG_SIZE'x'$IMG_SIZE'"
     echo "🤖 Modelo: $MODEL_ENGINE_PATH"
     
-    # Ejecutar YOLO con modelo TensorRT optimizado
-    yolo predict model="$MODEL_ENGINE_PATH" source='$VIDEO_SOURCE' show=True save=False
+    # Ejecutar YOLO con modelo TensorRT optimizado y resolución reducida
+    yolo predict model="$MODEL_ENGINE_PATH" source='$VIDEO_SOURCE' imgsz='$IMG_SIZE' show=True save=False
   '
 
 echo "✅ Finalizado"
