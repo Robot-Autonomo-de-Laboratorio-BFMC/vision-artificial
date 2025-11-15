@@ -84,6 +84,18 @@ PY
 
     # D) Exportar a TensorRT (si no existe aún) y predecir desde cámara
     test -f yolo11n.engine || yolo export model=yolo11n.pt format=engine
+    
+    # Configurar resolución de la cámara usando v4l2-ctl
+    # Esto reduce la resolución real de captura, no solo el redimensionamiento
+    if command -v v4l2-ctl &> /dev/null; then
+        echo "⚙️  Configurando resolución de cámara a '$IMG_SIZE'x'$IMG_SIZE'..."
+        v4l2-ctl --device=/dev/video0 --set-fmt-video=width='$IMG_SIZE',height='$IMG_SIZE' || echo "⚠️  No se pudo configurar resolución de cámara (continuando de todas formas)"
+    else
+        echo "⚠️  v4l2-ctl no encontrado, instalando..."
+        apt-get install -y -qq v4l-utils || echo "⚠️  No se pudo instalar v4l-utils"
+        v4l2-ctl --device=/dev/video0 --set-fmt-video=width='$IMG_SIZE',height='$IMG_SIZE' || echo "⚠️  No se pudo configurar resolución de cámara (continuando de todas formas)"
+    fi
+    
     # Mostrar en ventana con resolución reducida para mejor rendimiento
     echo "🖼️  Usando resolución: '$IMG_SIZE'x'$IMG_SIZE'"
     yolo predict model=yolo11n.engine source=0 imgsz='$IMG_SIZE' show=True

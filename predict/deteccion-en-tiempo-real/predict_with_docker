@@ -158,6 +158,17 @@ sudo docker run -it --rm --ipc=host \
     echo "🖼️  Resolución: '$IMG_SIZE'x'$IMG_SIZE'"
     echo "🤖 Modelo: $MODEL_ENGINE_PATH"
     
+    # Configurar resolución de la cámara usando v4l2-ctl
+    # Esto reduce la resolución real de captura, no solo el redimensionamiento
+    if command -v v4l2-ctl &> /dev/null; then
+        echo "⚙️  Configurando resolución de cámara a '$IMG_SIZE'x'$IMG_SIZE'..."
+        v4l2-ctl --device=/dev/'$VIDEO_DEVICE' --set-fmt-video=width='$IMG_SIZE',height='$IMG_SIZE' || echo "⚠️  No se pudo configurar resolución de cámara (continuando de todas formas)"
+    else
+        echo "⚠️  v4l2-ctl no encontrado, instalando..."
+        apt-get install -y -qq v4l-utils || echo "⚠️  No se pudo instalar v4l-utils"
+        v4l2-ctl --device=/dev/'$VIDEO_DEVICE' --set-fmt-video=width='$IMG_SIZE',height='$IMG_SIZE' || echo "⚠️  No se pudo configurar resolución de cámara (continuando de todas formas)"
+    fi
+    
     # Ejecutar YOLO con modelo TensorRT optimizado y resolución reducida
     yolo predict model="$MODEL_ENGINE_PATH" source='$VIDEO_SOURCE' imgsz='$IMG_SIZE' show=True save=False
   '
