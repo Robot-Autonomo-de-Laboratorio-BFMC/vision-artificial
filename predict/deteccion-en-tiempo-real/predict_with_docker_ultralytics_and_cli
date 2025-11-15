@@ -1,19 +1,154 @@
 #!/usr/bin/env bash
+set -e
 
-## correr directamente con la imagen de ultralytics: no es compatible con GPUs viejas
+# Script para ejecutar YOLO con best.pt en Docker usando imagen Ultralytics
+# Compatible con Jetson Jetpack 6
 
-# Set image name as a variable
-#t=ultralytics/ultralytics:latest
-t=ultralytics/ultralytics:latest-jetson-jetpack6
+# Configuración por defecto
+IMG="ultralytics/ultralytics:latest-jetson-jetpack6"
+MODEL_PATH="weights/merged/best.pt"
+VIDEO_DEVICE="video0"  # Por defecto video0
 
-# Pull the latest Ultralytics image from Docker Hub
-sudo docker pull $t
+# Función de ayuda
+show_help() {
+    echo "Uso: $0 [OPCIONES]"
+    echo ""
+    echo "Opciones:"
+    echo "  --video DEVICE    Especifica el dispositivo de video (por defecto: video0)"
+    echo "                    Ejemplos: --video video0, --video video1, --video 0"
+    echo "  -h, --help        Muestra esta ayuda"
+    echo ""
+    echo "Ejemplos:"
+    echo "  $0                    # Usa video0 (por defecto)"
+    echo "  $0 --video video1     # Usa video1"
+    echo "  $0 --video 0          # Usa el índice 0 (equivalente a video0)"
+}
 
-# Run the container
-xhost +local:docker && docker run -e DISPLAY=$DISPLAY \
+# Parsear argumentos
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --video)
+            VIDEO_DEVICE="$2"
+            shift 2
+            ;;
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        *)
+            echo "❌ Opción desconocida: $1"
+            echo ""
+            show_help
+            exit 1
+            ;;
+    esac
+done
+
+# Normalizar el dispositivo de video
+# Si es solo un número, convertir a video{N}
+if [[ "$VIDEO_DEVICE" =~ ^[0-9]+$ ]]; then
+    VIDEO_SOURCE="$VIDEO_DEVICE"
+    VIDEO_DEVICE="video$VIDEO_DEVICE"
+else
+    # Si ya tiene "video" al inicio, extraer el número para source
+    if [[ "$VIDEO_DEVICE" =~ ^video([0-9]+)$ ]]; then
+        VIDEO_SOURCE="${BASH_REMATCH[1]}"
+    else
+        # Si no tiene formato estándar, usar como está
+        VIDEO_SOURCE="$VIDEO_DEVICE"
+    fi
+fi
+
+echo "🚀 Iniciando YOLO con modelo best.pt..."
+echo "📁 Modelo: $MODEL_PATH"
+echo "⚡ Optimización: TensorRT (exportación automática si es necesario)"
+echo "📷 Dispositivo de video: /dev/$VIDEO_DEVICE (source=$VIDEO_SOURCE)"
+
+# Obtener directorio del script y navegar al directorio raíz del proyecto
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Navegar al directorio raíz del proyecto (vision-artificial)
+# Desde predict/deteccion-en-tiempo-real/ subimos 2 niveles para llegar a vision-artificial
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# Obtener ruta completa del modelo desde el directorio del script
+MODEL_FULL_PATH="$SCRIPT_DIR/$MODEL_PATH"
+
+echo "📂 Directorio del script: $SCRIPT_DIR"
+echo "📂 Directorio raíz del proyecto: $PROJECT_ROOT"
+
+# Verificar que el modelo existe
+if [ ! -f "$MODEL_FULL_PATH" ]; then
+    echo "❌ Error: No se encontró el modelo en $MODEL_FULL_PATH"
+    echo "💡 Asegúrate de que el archivo best.pt esté en weights/merged/"
+    exit 1
+fi
+
+echo "✅ Modelo encontrado"
+
+# Preparar X11 y descargar imagen
+xhost +local:docker || true
+sudo docker pull "$IMG"
+
+# Ejecutar contenedor
+echo "🎥 Iniciando detección en tiempo real... Este proceso puede tardar unos minutos..."
+echo "📋 Presiona Ctrl+C para detener"
+
+sudo docker run -it --rm --ipc=host \
+  --runtime=nvidia --gpus all \
+  --device=/dev/$VIDEO_DEVICE:/dev/$VIDEO_DEVICE \
+  --device=/dev/dri:/dev/dri \
+  -e DISPLAY=$DISPLAY \
+  -e QT_X11_NO_MITSHM=1 \
+  -e QT_QPA_PLATFORM=xcb \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
-  -v ~/.Xauthority:/root/.Xauthority \
-  -v $(pwd)/weights:/app/weights \
-  --device /dev/video0:/dev/video0 \
-  -it --ipc=host --runtime=nvidia --gpus all $t \
-  yolo predict model=/app/weights/merged/best.pt source=/dev/video0 show=True
+  -v "$PROJECT_ROOT:/workspace" \
+  -w /workspace \
+  "$IMG" bash -c '
+    # Instalar dependencias GUI
+    apt-get update -qq && apt-get install -y -qq \
+      python3-opencv libgtk-3-0 libgl1 libglib2.0-0 \
+      libqt5x11extras5 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 \
+      libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxkbcommon-x11-0 \
+      x11-xserver-utils
+    
+    # Remover OpenCV headless
+    pip uninstall -y opencv-python-headless opencv-contrib-python-headless || true
+    
+    # Navegar al directorio donde está el modelo
+    cd predict/deteccion-en-tiempo-real
+    
+    # Verificar que estamos en el directorio correcto
+    echo "📁 Directorio de trabajo: $(pwd)"
+    
+    # Verificar modelo
+    if [ ! -f '$MODEL_PATH' ]; then
+        echo "❌ Modelo no encontrado: '$MODEL_PATH'"
+        echo "💡 Archivos en el directorio actual:"
+        ls -la
+        exit 1
+    fi
+    
+    echo "✅ Modelo encontrado en el contenedor"
+    
+    # Determinar ruta del modelo engine (TensorRT)
+    # Reemplazar .pt con .engine
+    MODEL_ENGINE_PATH=$(echo '$MODEL_PATH' | sed 's/\.pt$/.engine/')
+    
+    # Exportar a TensorRT si no existe el engine
+    if [ ! -f "$MODEL_ENGINE_PATH" ]; then
+        echo "⚡ Exportando modelo a TensorRT para aceleración GPU..."
+        echo "📦 Esto puede tardar unos minutos la primera vez..."
+        yolo export model='$MODEL_PATH' format=engine
+        echo "✅ Exportación completada"
+    else
+        echo "✅ Modelo TensorRT encontrado, usando versión optimizada"
+    fi
+    
+    echo "🎮 Usando GPU para aceleración"
+    echo "📷 Fuente: /dev/'$VIDEO_DEVICE' (source='$VIDEO_SOURCE')"
+    echo "🤖 Modelo: $MODEL_ENGINE_PATH"
+    
+    # Ejecutar YOLO con modelo TensorRT optimizado
+    yolo predict model="$MODEL_ENGINE_PATH" source='$VIDEO_SOURCE' show=True save=False
+  '
+
+echo "✅ Finalizado"
