@@ -68,109 +68,44 @@ else
     fi
 fi
 
-echo "🚀 Iniciando YOLO con modelo best.pt..."
-echo "📁 Modelo: $MODEL_PATH"
-echo "⚡ Optimización: TensorRT (exportación automática si es necesario)"
-echo "📷 Dispositivo de video: /dev/$VIDEO_DEVICE (source=$VIDEO_SOURCE)"
-echo "🖼️  Resolución de imagen: ${IMG_SIZE}x${IMG_SIZE}"
-
 # Obtener directorio del script y navegar al directorio raíz del proyecto
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Navegar al directorio raíz del proyecto (vision-artificial)
-# Desde predict/deteccion-en-tiempo-real/ subimos 2 niveles para llegar a vision-artificial
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-# Obtener ruta completa del modelo desde el directorio del script
 MODEL_FULL_PATH="$SCRIPT_DIR/$MODEL_PATH"
-
-echo "📂 Directorio del script: $SCRIPT_DIR"
-echo "📂 Directorio raíz del proyecto: $PROJECT_ROOT"
 
 # Verificar que el modelo existe
 if [ ! -f "$MODEL_FULL_PATH" ]; then
     echo "❌ Error: No se encontró el modelo en $MODEL_FULL_PATH"
-    echo "💡 Asegúrate de que el archivo best.pt esté en weights/merged/"
     exit 1
 fi
 
-echo "✅ Modelo encontrado"
-
 # Preparar X11 y descargar imagen
-xhost +local:docker || true
+xhost +local:docker
 sudo docker pull "$IMG"
 
-# Ejecutar contenedor
-echo "🎥 Iniciando detección en tiempo real... Este proceso puede tardar unos minutos..."
-echo "📋 Presiona Ctrl+C para detener"
-
+# Ejecutar contenedor con la misma estructura simple que test.sh
 sudo docker run -it --rm --ipc=host \
-  --runtime=nvidia --gpus all \
-  --device=/dev/$VIDEO_DEVICE:/dev/$VIDEO_DEVICE \
-  --device=/dev/dri:/dev/dri \
-  -e DISPLAY=$DISPLAY \
-  -e QT_X11_NO_MITSHM=1 \
-  -e QT_QPA_PLATFORM=xcb \
-  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  --runtime=nvidia \
+  --gpus all \
   -v "$PROJECT_ROOT:/workspace" \
-  -w /workspace \
-  "$IMG" bash -c '
-    # Instalar dependencias GUI
-    apt-get update -qq && apt-get install -y -qq \
-      python3-opencv libgtk-3-0 libgl1 libglib2.0-0 \
-      libqt5x11extras5 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 \
-      libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxkbcommon-x11-0 \
-      x11-xserver-utils
-    
-    # Remover OpenCV headless
-    pip uninstall -y opencv-python-headless opencv-contrib-python-headless || true
-    
-    # Navegar al directorio donde está el modelo
-    cd predict/deteccion-en-tiempo-real
-    
-    # Verificar que estamos en el directorio correcto
-    echo "📁 Directorio de trabajo: $(pwd)"
-    
-    # Verificar modelo
-    if [ ! -f '$MODEL_PATH' ]; then
-        echo "❌ Modelo no encontrado: '$MODEL_PATH'"
-        echo "💡 Archivos en el directorio actual:"
-        ls -la
-        exit 1
-    fi
-    
-    echo "✅ Modelo encontrado en el contenedor"
-    
-    # Determinar ruta del modelo engine (TensorRT)
-    # Reemplazar .pt con .engine
-    MODEL_ENGINE_PATH=$(echo '$MODEL_PATH' | sed 's/\.pt$/.engine/')
-    
-    # Exportar a TensorRT si no existe el engine
-    if [ ! -f "$MODEL_ENGINE_PATH" ]; then
-        echo "⚡ Exportando modelo a TensorRT para aceleración GPU..."
-        echo "📦 Esto puede tardar unos minutos la primera vez..."
-        yolo export model='$MODEL_PATH' format=engine
-        echo "✅ Exportación completada"
-    else
-        echo "✅ Modelo TensorRT encontrado, usando versión optimizada"
-    fi
-    
-    echo "🎮 Usando GPU para aceleración"
-    echo "📷 Fuente: /dev/'$VIDEO_DEVICE' (source='$VIDEO_SOURCE')"
-    echo "🖼️  Resolución: '$IMG_SIZE'x'$IMG_SIZE'"
-    echo "🤖 Modelo: $MODEL_ENGINE_PATH"
-    
-    # Configurar resolución de la cámara usando v4l2-ctl
-    # Esto reduce la resolución real de captura, no solo el redimensionamiento
-    if command -v v4l2-ctl &> /dev/null; then
-        echo "⚙️  Configurando resolución de cámara a '$IMG_SIZE'x'$IMG_SIZE'..."
-        v4l2-ctl --device=/dev/'$VIDEO_DEVICE' --set-fmt-video=width='$IMG_SIZE',height='$IMG_SIZE' || echo "⚠️  No se pudo configurar resolución de cámara (continuando de todas formas)"
-    else
-        echo "⚠️  v4l2-ctl no encontrado, instalando..."
-        apt-get install -y -qq v4l-utils || echo "⚠️  No se pudo instalar v4l-utils"
-        v4l2-ctl --device=/dev/'$VIDEO_DEVICE' --set-fmt-video=width='$IMG_SIZE',height='$IMG_SIZE' || echo "⚠️  No se pudo configurar resolución de cámara (continuando de todas formas)"
-    fi
-    
-    # Ejecutar YOLO con modelo TensorRT optimizado y resolución reducida
-    yolo predict model="$MODEL_ENGINE_PATH" source='$VIDEO_SOURCE' imgsz='$IMG_SIZE' show=True save=False
-  '
+  --device=/dev/$VIDEO_DEVICE:/dev/$VIDEO_DEVICE \
+  -e DISPLAY=$DISPLAY \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  -w /workspace/predict/deteccion-en-tiempo-real \
+  "$IMG" bash -c "\
+    apt-get update && apt-get install -y \
+      libqt5x11extras5 \
+      libxcb-icccm4 \
+      libxcb-image0 \
+      libxcb-keysyms1 \
+      libxcb-randr0 \
+      libxcb-render-util0 \
+      libxcb-xinerama0 \
+      libxkbcommon-x11-0 \
+      x11-xserver-utils \
+      python3-opencv && \
+    MODEL_ENGINE_PATH=\$(echo '$MODEL_PATH' | sed 's/\.pt$/.engine/') && \
+    test -f \"\$MODEL_ENGINE_PATH\" || yolo export model='$MODEL_PATH' format=engine && \
+    yolo predict model=\"\$MODEL_ENGINE_PATH\" source='$VIDEO_SOURCE' imgsz='$IMG_SIZE' show=True"
 
 echo "✅ Finalizado"
