@@ -5,15 +5,19 @@ sudo docker pull $t
 
 xhost +local:docker
 
+# Obtener directorio del proyecto automáticamente
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
 sudo docker run -it --ipc=host \
   --runtime=nvidia \
   --gpus all \
-  -v /home/$USER:/home/$USER \
+  -v "$PROJECT_ROOT:/workspace" \
   --device=/dev/video0:/dev/video0 \
   -e DISPLAY=$DISPLAY \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
+  -w /workspace/predict/deteccion-en-tiempo-real \
   $t bash -c "\
-    cd /home/$USER/projects/universidad/bfmc/Robot-Autonomo-de-Laboratorio-BFMC/vision-artificial/predict/deteccion-en-tiempo-real && \
     apt-get update && apt-get install -y \
       libqt5x11extras5 \
       libxcb-icccm4 \
