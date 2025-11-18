@@ -77,10 +77,11 @@ echo "🖼️  Resolución de imagen: ${IMG_SIZE}x${IMG_SIZE}"
 # Obtener directorio del script y navegar al directorio raíz del proyecto
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Navegar al directorio raíz del proyecto (vision-artificial)
-# Desde predict/deteccion-en-tiempo-real/ subimos 2 niveles para llegar a vision-artificial
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# Desde predict/deteccion-en-tiempo-real/docker/ subimos 3 niveles para llegar a vision-artificial
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 # Obtener ruta completa del modelo desde el directorio del script
-MODEL_FULL_PATH="$SCRIPT_DIR/$MODEL_PATH"
+# El modelo está en predict/deteccion-en-tiempo-real/weights/merged/, subimos un nivel desde docker/
+MODEL_FULL_PATH="$(cd "$SCRIPT_DIR/.." && pwd)/$MODEL_PATH"
 
 echo "📂 Directorio del script: $SCRIPT_DIR"
 echo "📂 Directorio raíz del proyecto: $PROJECT_ROOT"
