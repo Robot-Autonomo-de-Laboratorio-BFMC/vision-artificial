@@ -1,0 +1,1 @@
+aca lo que pasa es que anda muy lento la deteccion pero por culpa de opencv mostrando las ventanas.
