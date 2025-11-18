@@ -29,5 +29,5 @@ sudo docker run -it --ipc=host \
       libxkbcommon-x11-0 \
       x11-xserver-utils \
       python3-opencv && \
-    yolo export model=weights/merged/best.pt format=engine && \
+    ([ -f weights/merged/best.engine ] && echo 'Engine file already exists, skipping export' || yolo export model=weights/merged/best.pt format=engine) && \
     yolo predict model=weights/merged/best.engine source=0 show=True"
