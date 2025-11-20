@@ -45,7 +45,7 @@ def cargar_modelo(model_path, device):
         print(f"✅ Engine file encontrado: {engine_path}")
         print("📦 Usando modelo TensorRT optimizado")
         try:
-            model = YOLO(engine_path)
+            model = YOLO(engine_path, task='detect')
             if device == "cuda":
                 model.to(device)
             return model
@@ -55,7 +55,7 @@ def cargar_modelo(model_path, device):
     # Si no existe engine o falló, usar .pt y exportar si es necesario
     print(f"📋 Cargando modelo: {model_path}")
     try:
-        model = YOLO(model_path)
+        model = YOLO(model_path, task='detect')
         if device == "cuda":
             model.to(device)
         
@@ -68,7 +68,7 @@ def cargar_modelo(model_path, device):
                 print("✅ Exportación completada")
                 # Recargar el modelo engine
                 if os.path.exists(engine_path):
-                    model = YOLO(engine_path)
+                    model = YOLO(engine_path, task='detect')
                     if device == "cuda":
                         model.to(device)
             except Exception as e:

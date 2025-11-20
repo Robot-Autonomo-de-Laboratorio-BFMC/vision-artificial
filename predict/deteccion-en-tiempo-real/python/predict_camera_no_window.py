@@ -34,20 +34,20 @@ def cargar_modelo(model_path, device):
     
     # Priorizar engine si existe
     if os.path.exists(engine_path):
-        model = YOLO(engine_path)
+        model = YOLO(engine_path, task='detect')
         if device == "cuda":
             model.to(device)
         return model
     
     # Cargar .pt y exportar a engine si hay GPU
-    model = YOLO(model_path)
+    model = YOLO(model_path, task='detect')
     if device == "cuda":
         model.to(device)
         if not os.path.exists(engine_path):
             try:
                 model.export(format='engine')
                 if os.path.exists(engine_path):
-                    model = YOLO(engine_path)
+                    model = YOLO(engine_path, task='detect')
                     model.to(device)
             except:
                 pass  # Continuar con .pt si falla exportación
