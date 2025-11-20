@@ -117,7 +117,7 @@ def procesar_camara(model, device):
                         print(f"Frame {frame_count}: {class_name} {confidence:.2%} [{box[0]:.1f},{box[1]:.1f},{box[2]:.1f},{box[3]:.1f}]")
             
             # Imprimir cuando no hay detecciones (cada 30 frames para no saturar)
-            if not detections_found and frame_count % 30 == 0:
+            if not detections_found:
                 print(f"Frame {frame_count}: Sin detecciones")
             
     except KeyboardInterrupt:
