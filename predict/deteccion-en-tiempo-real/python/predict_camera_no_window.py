@@ -34,9 +34,10 @@ def cargar_modelo(model_path, device):
     
     # Priorizar engine si existe
     if os.path.exists(engine_path):
+        print(f"✅ Engine file encontrado: {engine_path}")
+        print("📦 Usando modelo TensorRT optimizado")
+        # Los modelos TensorRT ya están optimizados para GPU, no necesitan .to(device)
         model = YOLO(engine_path, task='detect')
-        if device == "cuda":
-            model.to(device)
         return model
     
     # Cargar .pt y exportar a engine si hay GPU
@@ -47,8 +48,8 @@ def cargar_modelo(model_path, device):
             try:
                 model.export(format='engine')
                 if os.path.exists(engine_path):
+                    # Recargar como engine (no necesita .to(device))
                     model = YOLO(engine_path, task='detect')
-                    model.to(device)
             except:
                 pass  # Continuar con .pt si falla exportación
     
