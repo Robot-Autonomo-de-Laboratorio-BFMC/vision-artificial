@@ -97,10 +97,8 @@ def procesar_camara(model, device):
             
             frame_count += 1
             
-            # SOLO DETECCIÓN - Inferencia en GPU
             results = model(frame, verbose=False, device=device)[0]
             
-            # Procesar solo detecciones básicas (mínimo procesamiento CPU)
             detections_found = False
             if results.boxes is not None and len(results.boxes) > 0:
                 boxes = results.boxes
@@ -114,9 +112,9 @@ def procesar_camara(model, device):
                         class_name = model.names[cls]
                         
                         # Imprimir directamente sin cálculos adicionales
-                        print(f"Frame {frame_count}: {class_name} {confidence:.2%} [{box[0]:.1f},{box[1]:.1f},{box[2]:.1f},{box[3]:.1f}]")
+                        x1, y1, x2, y2 = box[0], box[1], box[2], box[3]
+                        print(f"Frame {frame_count}: {class_name} {confidence:.2%} bbox(x1={x1:.1f}, y1={y1:.1f}, x2={x2:.1f}, y2={y2:.1f})")
             
-            # Imprimir cuando no hay detecciones (cada 30 frames para no saturar)
             if not detections_found:
                 print(f"Frame {frame_count}: Sin detecciones")
             
