@@ -8,6 +8,5 @@ model.export(format="engine")  # creates 'yolo11n.engine'
 
 # Load the exported TensorRT model
 trt_model = YOLO("yolo11n.engine")
-
 # Run inference
 results = trt_model("https://ultralytics.com/images/bus.jpg")
