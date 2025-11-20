@@ -101,11 +101,13 @@ def procesar_camara(model, device):
             results = model(frame, verbose=False, device=device)[0]
             
             # Procesar solo detecciones básicas (mínimo procesamiento CPU)
+            detections_found = False
             if results.boxes is not None and len(results.boxes) > 0:
                 boxes = results.boxes
                 for i in range(len(boxes)):
                     confidence = float(boxes.conf[i])
                     if confidence >= confidence_threshold:
+                        detections_found = True
                         # Solo obtener coordenadas directamente (mínimo procesamiento)
                         box = boxes.xyxy[i].cpu().numpy()  # [x1, y1, x2, y2]
                         cls = int(boxes.cls[i])
@@ -113,6 +115,10 @@ def procesar_camara(model, device):
                         
                         # Imprimir directamente sin cálculos adicionales
                         print(f"Frame {frame_count}: {class_name} {confidence:.2%} [{box[0]:.1f},{box[1]:.1f},{box[2]:.1f},{box[3]:.1f}]")
+            
+            # Imprimir cuando no hay detecciones (cada 30 frames para no saturar)
+            if not detections_found and frame_count % 30 == 0:
+                print(f"Frame {frame_count}: Sin detecciones")
             
     except KeyboardInterrupt:
         print("\n⏹️  Deteniendo...")
